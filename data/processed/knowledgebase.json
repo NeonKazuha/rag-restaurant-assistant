@@ -1,6 +1,7 @@
 [
   {
     "name": "Classic Restaurant - Treat",
+    "rating": "4.2",
     "menu_items": [
       {
         "name": "Deluxe Thali",
@@ -2695,6 +2696,7 @@
   },
   {
     "name": "Ice Cream Sundae, Shakes And More",
+    "rating": "4.8",
     "menu_items": [
       {
         "name": "Brownie Sundae with Chocolate Sauce [1 Jar]",
@@ -3418,6 +3420,7 @@
   },
   {
     "name": "Neelkanth Green",
+    "rating": "4.4",
     "menu_items": [
       {
         "name": "Cheese Finger",
@@ -5581,6 +5584,7 @@
   },
   {
     "name": "Fo'sho - Pan Asian & Italian Bistro",
+    "rating": "3.7",
     "menu_items": [
       {
         "name": "Classic Caesar Salad",
@@ -6985,6 +6989,7 @@
   },
   {
     "name": "Tanatan",
+    "rating": "3.8",
     "menu_items": [
       {
         "name": "Veg Platter",
@@ -8109,6 +8114,7 @@
   },
   {
     "name": "Curry Leaf",
+    "rating": "4.8",
     "menu_items": [
       {
         "name": "Aloo Bonda [4 Pcs]",
@@ -9712,6 +9718,7 @@
   },
   {
     "name": "Purple Basil",
+    "rating": "4.8",
     "menu_items": [
       {
         "name": "Tikka SaladPaneer Tikka Salad",
