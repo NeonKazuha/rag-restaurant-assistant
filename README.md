@@ -4,8 +4,6 @@ This document outlines the key deliverables for the RAG Restaurant Assistant pro
 
 ## 1. Code Repository
 
-(Content remains the same as the previous version: Source Code Files, README Outline with Bash/CMD commands)
-
 ### Source Code Files:
 
 * **`app.py`**: Streamlit web application interface for the chatbot.
