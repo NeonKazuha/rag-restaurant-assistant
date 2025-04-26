@@ -1,87 +1,48 @@
 import re
-from transformers import pipeline
-from index_faiss import retrieve_chunks
-from query_planner import parse_query
+# --- Query Parsing Function ---
+def parse_query(question):
+    '''
+    Parses the user question to extract intent and parameters.
+    (This is a placeholder - the actual implementation should be here)
 
-# Text-generation model
-generator = pipeline(
-    "text2text-generation",
-    model="t5-base",
-    tokenizer="t5-base",
-    device=-1
-)
+    Args:
+        question (str): The user's question.
 
-PROMPT = """
-You are ZomatoBot. Use the following information to answer the question.
-Context:
-{context}
+    Returns:
+        dict: A dictionary containing parsed specifications like
+              price_lt, dietary, spice_cmp, restaurant.
+              Example: {'price_lt': None, 'dietary': ['vegan'], 'spice_cmp': None, 'restaurant': None}
+    '''
+    # Placeholder implementation - Replace with your actual parsing logic
+    spec = {'price_lt': None, 'dietary': [], 'spice_cmp': None, 'restaurant': None}
 
-Question:
-{question}
+    # Price check
+    price_match = re.search(r"(?:under|less than|below)\s*₹?(\d+)", question, re.IGNORECASE)
+    if price_match:
+        spec['price_lt'] = int(price_match.group(1))
 
-Answer concisely:
-""".strip()
+    # Dietary checks (add more as needed)
+    if re.search(r'\bvegan\b', question, re.IGNORECASE):
+        spec['dietary'].append('vegan')
+    if re.search(r'gluten[\s-]?free\b', question, re.IGNORECASE):
+        spec['dietary'].append('gluten_free')
+    if re.search(r'\bvegetarian\b', question, re.IGNORECASE):
+         spec['dietary'].append('vegetarian')
 
-def list_dishes(resto, chunks):
-    names = [c['dish_name'] for c in chunks if c['resto_id'] == resto]
-    return names
+    # Spice comparison check
+    spice_match = re.search(r"compare spice.*? dish (.+?) between (.+?) and (.+)", question, re.IGNORECASE)
+    if spice_match:
+        spec['spice_cmp'] = {
+            'dish': spice_match.group(1).strip(),
+            'restaurants': [spice_match.group(2).strip(), spice_match.group(3).strip()]
+        }
 
-def answer_dynamic(question, embed_model, index, chunks, k=5):
-    spec = parse_query(question)
+    # Using NER
+    resto_match = re.search(r"(?:dishes|menu) at (.+)", question, re.IGNORECASE)
+    if resto_match:
+        spec['restaurant'] = resto_match.group(1).strip()
 
-    # 1) Price filter
-    if spec['price_lt'] is not None:
-        thr = spec['price_lt']
-        idxs = [i for i,c in enumerate(chunks)
-                if c.get('price') is not None and c['price'] < thr]
-        if not idxs:
-            return f"No dishes under ₹{thr}."
-        if len(idxs) > k:
-            selected = retrieve_chunks(question, embed_model, index, chunks,
-                                       k=k, filter_indices=idxs)
-        else:
-            selected = [chunks[i] for i in idxs]
-        return f"Dishes under ₹{thr}:\n" + "\n".join(c['dish_name'] for c in selected)
 
-    # 2) Dietary filters
-    if spec['dietary']:
-        tags = spec['dietary']
-        idxs = [i for i,c in enumerate(chunks)
-                if all(c['attributes'].get(t, False) for t in tags)]
-        if not idxs:
-            return f"No dishes matching {', '.join(tags)}."
-        if len(idxs) > k:
-            selected = retrieve_chunks(question, embed_model, index, chunks,
-                                       k=k, filter_indices=idxs)
-        else:
-            selected = [chunks[i] for i in idxs]
-        return f"Dishes with {', '.join(tags)}:\n" + "\n".join(c['dish_name'] for c in selected)
+    print(f"Parsed query spec: {spec}")
+    return spec
 
-    # 3) Spice comparison
-    if spec['spice_cmp']:
-        dish = spec['spice_cmp']['dish']
-        r1, r2 = spec['spice_cmp']['restaurants']
-        # find matching chunks
-        d1 = next((c for c in chunks if c['dish_name']==dish and c['resto_id']==r1), None)
-        d2 = next((c for c in chunks if c['dish_name']==dish and c['resto_id']==r2), None)
-        if not d1 or not d2:
-            return "Couldn’t find that dish in one of the restaurants."
-        ctx = (f"{r1} – {dish}: spice level {d1['attributes'].get('spice_level')}\n"
-               f"{r2} – {dish}: spice level {d2['attributes'].get('spice_level')}")
-        prompt = PROMPT.format(context=ctx, question=question)
-        return generator(prompt, max_length=100, do_sample=False)[0]['generated_text']
-
-    # 4) List all dishes at a restaurant
-    if spec['restaurant']:
-        names = list_dishes(spec['restaurant'], chunks)
-        if not names:
-            return f"No dishes found for '{spec['restaurant']}'."
-        return f"{spec['restaurant']} dishes:\n" + "\n".join(names)
-
-    # 5) Fallback full RAG
-    top = retrieve_chunks(question, embed_model, index, chunks, k=k)
-    if not top:
-        return "Sorry, I couldn't find relevant info."
-    ctx = "\n".join(c['text'] for c in top)
-    prompt = PROMPT.format(context=ctx, question=question)
-    return generator(prompt, max_length=150, do_sample=False)[0]['generated_text']

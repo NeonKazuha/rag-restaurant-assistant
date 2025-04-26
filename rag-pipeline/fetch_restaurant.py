@@ -1,7 +1,7 @@
 import json
 import os
 
-def load_restaurants(json_path='data/raw/restaurant_data.json'):
+def load_restaurants(json_path=r'D:\rag-restaurant-assistant\data\raw\restaurant_data.json'):
     '''
     Load the list of restaurants from a JSON file.
     If json_path is None, defaults to data/restaurants.json.
