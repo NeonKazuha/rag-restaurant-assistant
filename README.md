@@ -46,6 +46,7 @@ The system employs a RAG pipeline:
     *   Display the answer to the user (`app.py` / `run.py`).
 
 Folder StructureRAG-RESTAURANT-ASSISTANT/
+```
 │
 ├── data/
 │   ├── processed/
@@ -80,6 +81,7 @@ Folder StructureRAG-RESTAURANT-ASSISTANT/
 ├── LICENSE                   # Project license file
 ├── README.md                 # This file
 └── requirements.txt          # Python package dependencies
+```
 
 ### File Descriptions
 
