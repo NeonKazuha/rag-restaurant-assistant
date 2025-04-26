@@ -2,3 +2,4 @@ numpy
 sentence-transformers
 transformers
 faiss-cpu
+streamlit
