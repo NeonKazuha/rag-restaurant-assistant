@@ -8,7 +8,7 @@ def create_faiss_index(chunks, model_name='all-MiniLM-L6-v2'):
     Returns (embed_model, faiss_index).
     """
     texts = [c['text'] for c in chunks]
-    embed_model = SentenceTransformer(model_name)
+    embed_model = SentenceTransformer(model_name, device='cpu')
     embeddings = embed_model.encode(texts, normalize_embeddings=True)
     dim = embeddings.shape[1]
     index = faiss.IndexFlatIP(dim)
