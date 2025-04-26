@@ -33,15 +33,14 @@ The chatbot can be interacted with via a Streamlit web interface (`app.py`) or a
 The system employs a RAG pipeline:
 
 1.  **Offline Processing:**
-    *   Load restaurant data from `knowledgebase.json` (`fetch_restaurant.py`).
-    *   Chunk data into individual menu item descriptions, embedding restaurant/item metadata (`chunking.py`).
-    *   Generate vector embeddings for each chunk using `SentenceTransformer` (`index_faiss.py`).
-    *   Build a FAISS index for efficient vector search (`index_faiss.py`).
+    *   **(Scraping - Optional)** Fetch website URLs (`scraper/fetch_websites.py`), scrape data (`scraper/web_scraper.py`), extract relevant information (`scraper/extraction.py`), save raw data (`data/raw/restaurant_data.json`).
+    *   **(Indexing)** Load structured data (`data/processed/knowledgebase.json` - potentially generated from raw data or provided directly).
+    *   Process data, generate embeddings, and build FAISS index (`scraper/process.py` or `rag-pipeline/index_faiss.py` depending on workflow).
 2.  **Online Querying:**
     *   Receive user query via UI (Streamlit/Console - `app.py`/`run.py`).
     *   **(Optional)** Parse the query using `query_planner.py` to identify intent or specific entities.
     *   Embed the user query using the same `SentenceTransformer` (`chatbot.py`).
-    *   Retrieve top-k relevant chunks from the FAISS index based on semantic similarity (`index_faiss.py`).
+    *   Retrieve top-k relevant chunks from the FAISS index based on semantic similarity (`index_faiss.py` or `chatbot.py`).
     *   Format retrieved chunks and the original query into a prompt suitable for the Gemini API (`chatbot.py`).
     *   Call the Google Gemini API (`answer` function in `chatbot.py`) to generate a natural language answer based *only* on the provided context.
     *   Display the answer to the user (`app.py` / `run.py`).
@@ -58,18 +57,23 @@ Folder StructureRAG-RESTAURANT-ASSISTANT/
 │   ├── __pycache__/          # Python cache files (usually ignored)
 │   ├── app.py                # Streamlit web application
 │   ├── chatbot.py            # Main chatbot logic (RAG + Gemini call)
-│   ├── chunking.py           # Data chunking logic
+│   ├── chunking.py           # Data chunking logic (if separate from indexing)
 │   ├── fetch_restaurant.py   # Utility to load knowledgebase.json
-│   ├── index_faiss.py        # Embedding generation and FAISS index logic
+│   ├── index_faiss.py        # Embedding generation and FAISS index logic (alternative location)
 │   ├── query_planner.py      # (Optional) Query parsing/logging
 │   └── run.py                # Command-line interface
 │
-├── scraper/                  # (Optional) Code used for data collection
-│   ├── extraction.py         # Logic for extracting specific data from scraped content
-│   ├── fetch_websites.py     # Logic for fetching website content
-│   ├── process.py            # Logic for processing extracted data (e.g., feature extraction)
-│   ├── utils.py              # Utility functions for the scraper
-│   └── web_scraper.py        # Main script orchestrating the web scraping process
+├── scraper/                  # (Optional) Code used for data collection & preprocessing
+│   ├── output/               # Output from scraper scripts
+│   │   ├── raw_extracted_data.json # Raw data from extraction.py
+│   │   ├── knowledge_base.json     # Processed data (alternative location)
+│   │   ├── faiss_index.bin         # FAISS index file
+│   │   └── metadata.pkl            # Metadata for FAISS index
+│   ├── extraction.py         # Extracts data using the scraper and saves raw output
+│   ├── fetch_websites.py     # (Placeholder) Script to fetch website URLs for scraping
+│   ├── process.py            # Processes data, creates embeddings and FAISS index
+│   ├── utils.py              # (Placeholder) Utility functions for the scraper module
+│   └── web_scraper.py        # Core web scraping logic for restaurant data
 │
 ├── .env                      # Stores environment variables (like API keys - DO NOT COMMIT)
 ├── .gitignore                # Specifies intentionally untracked files for Git
@@ -80,21 +84,24 @@ Folder StructureRAG-RESTAURANT-ASSISTANT/
 ### File Descriptions
 
 *   **`data/processed/knowledgebase.json`**: The main structured dataset containing restaurant names, menus, attributes, ratings, etc., used by the RAG pipeline.
-*   **`data/raw/restaurant_data.json`**: (Optional) Could store the original, less processed data before cleaning/structuring into `knowledgebase.json`.
+*   **`data/raw/restaurant_data.json`**: (Optional) Could store the original, less processed data before cleaning/structuring into `knowledgebase.json`. Also see `scraper/output/raw_extracted_data.json`.
+
 *   **`rag-pipeline/app.py`**: Implements the user-friendly web interface using Streamlit. Handles user input, calls the chatbot logic, and displays the conversation.
-*   **`rag-pipeline/chatbot.py`**: Contains the core `answer` function (or potentially `answer_with_rag_gemini` if refactored). It orchestrates the RAG process: embedding the query, retrieving chunks from FAISS, formatting the prompt, calling the Gemini API, and returning the response.
-*   **`rag-pipeline/chunking.py`**: Defines how the raw JSON data is broken down into smaller text chunks suitable for embedding and retrieval. Includes logic for adding relevant metadata to each chunk.
+*   **`rag-pipeline/chatbot.py`**: Contains the core `answer` function. It orchestrates the RAG process: embedding the query, retrieving chunks from FAISS, formatting the prompt, calling the Gemini API, and returning the response.
+*   **`rag-pipeline/chunking.py`**: (If used) Defines how the raw JSON data is broken down into smaller text chunks suitable for embedding and retrieval. Includes logic for adding relevant metadata to each chunk. (Note: Chunking logic might be integrated into `scraper/process.py` or `rag-pipeline/index_faiss.py`).
 *   **`rag-pipeline/fetch_restaurant.py`**: A simple utility function to load the `knowledgebase.json` file into a Python object.
-*   **`rag-pipeline/index_faiss.py`**: Handles the creation of vector embeddings using SentenceTransformer and builds/searches the FAISS vector index. Contains the `create_faiss_index` function and logic for retrieving chunks.
+*   **`rag-pipeline/index_faiss.py`**: (If used for RAG pipeline) Handles the creation of vector embeddings using SentenceTransformer and builds/searches the FAISS vector index. Contains the `create_faiss_index` function and logic for retrieving chunks. (Note: Indexing logic might be handled by `scraper/process.py`).
 *   **`rag-pipeline/query_planner.py`**: (Currently Optional/Simplified) Intended for parsing user queries to detect specific intents or extract parameters (like price comparisons, specific dishes). In the current simplified RAG-only approach, it might only be used for logging or pre-filtering.
 *   **`rag-pipeline/run.py`**: Provides a basic command-line interface to interact with the chatbot, useful for testing and debugging.
-*   **`scraper/extraction.py`**: (Optional) Contains functions specifically designed to extract structured information (like menu items, prices, descriptions) from the raw HTML or content fetched by the scraper.
-*   **`scraper/fetch_websites.py`**: (Optional) Includes code responsible for downloading the content (HTML, JSON, etc.) from target restaurant websites or data sources.
-*   **`scraper/process.py`**: (Optional) Contains scripts or functions for cleaning, transforming, and potentially enriching the extracted raw data (e.g., calculating features like spice level, identifying dietary tags) before it's saved in a structured format like `knowledgebase.json`.
-*   **`scraper/utils.py`**: (Optional) Holds common utility functions used across different parts of the scraping process (e.g., handling requests, parsing helpers, logging setup).
-*   **`scraper/web_scraper.py`**: (Optional) The main script or entry point for the data collection process, likely coordinating the fetching, extraction, and processing steps.
+
+*   **`scraper/extraction.py`**: Orchestrates the data extraction process. Loads website URLs, utilizes `web_scraper.py` to scrape data from each site, and saves the aggregated raw extracted data (e.g., to `scraper/output/raw_extracted_data.json`).
+*   **`scraper/fetch_websites.py`**: (Placeholder) Intended script to gather or load the list of restaurant website URLs that need to be scraped.
+*   **`scraper/process.py`**: Handles the preprocessing of data (e.g., loading from `raw_extracted_data.json` or `knowledge_base.json`), generates text embeddings for relevant fields (like menu items, descriptions) using SentenceTransformer, builds a FAISS index for vector search, and saves the index and associated metadata (e.g., to `scraper/output/`).
+*   **`scraper/utils.py`**: (Placeholder) Intended location for helper functions used across different scripts within the `scraper` module.
+*   **`scraper/web_scraper.py`**: Contains the core logic (`RestaurantScraper` class) for scraping data from individual restaurant websites.
+
 *   **`.env`**: Stores sensitive information like the `GEMINI_API_KEY` outside of the main codebase. Must not be committed to Git.
-*   **`.gitignore`**: Lists files and directories (like `__pycache__`, `venv`, `.env`) that Git should ignore.
+*   **`.gitignore`**: Lists files and directories (like `__pycache__`, `venv`, `.env`, `scraper/output/`) that Git should ignore.
 *   **`LICENSE`**: Contains the software license under which the project is distributed.
 *   **`README.md`**: This file, providing documentation and instructions for the project.
 *   **`requirements.txt`**: Lists all the Python libraries required to run the project, allowing for easy installation using `pip install -r requirements.txt`.
@@ -136,9 +143,13 @@ Folder StructureRAG-RESTAURANT-ASSISTANT/
         ```
     *   **Important:** Add `.env` to your `.gitignore` file to prevent accidentally committing your API key.
 
-5.  **Place the knowledge base:**
-    *   Ensure your `knowledgebase.json` file is located at `data/processed/knowledgebase.json`.
-    *   Adjust the path in `rag-pipeline/app.py` (variable `DATA_PATH`) and potentially `rag-pipeline/fetch_restaurant.py` if your file is located elsewhere.
+5.  **Prepare Data and Index:**
+    *   **Option A: Use Pre-processed Data:** Ensure your `knowledgebase.json` file is located at `data/processed/knowledgebase.json`. Ensure the corresponding FAISS index (`faiss_index.bin`) and metadata (`metadata.pkl`) are present (e.g., in `scraper/output/` or wherever `app.py` expects them). Adjust paths in the code if necessary.
+    *   **Option B: Run Scraper/Processing Pipeline:**
+        *   (If applicable) Prepare website list for `scraper/fetch_websites.py`.
+        *   (If applicable) Run `python scraper/extraction.py` to scrape and save raw data.
+        *   Run `python scraper/process.py` to generate the `knowledge_base.json` (if needed), embeddings, FAISS index, and metadata. Ensure input/output paths in `scraper/process.py` are correct.
+    *   Adjust paths in `rag-pipeline/app.py` (e.g., `DATA_PATH`, paths for index/metadata) and potentially `rag-pipeline/fetch_restaurant.py` or `rag-pipeline/chatbot.py` to point to the correct data, index, and metadata files.
 
 ### Running the Application
 
@@ -157,7 +168,7 @@ Folder StructureRAG-RESTAURANT-ASSISTANT/
         ```bash
         python run.py
         ```
-        (Note: Ensure `run.py` is updated to use the correct chatbot function, e.g., `answer`, and handles dependencies correctly as shown in `app.py`).
+        (Note: Ensure `run.py` is updated to use the correct chatbot function, e.g., `answer`, and handles dependencies/paths correctly as shown in `app.py`).
 
 ### Challenges Faced
 
@@ -169,16 +180,19 @@ Folder StructureRAG-RESTAURANT-ASSISTANT/
 *   **API Integration & Key Management:** Switching from a local T5 model to the Gemini API required integrating the `google-generativeai` library and implementing secure API key management using `python-dotenv` and environment variables.
 *   **Retrieval Tuning:** Finding the right number of chunks (`k`) to retrieve involved balancing providing enough context for the LLM versus overwhelming it with potentially irrelevant information.
 *   **Model Loading Times:** Initializing the embedding model (SentenceTransformer) could impact application startup time, partially mitigated using Streamlit's caching (`@st.cache_resource`).
+*   **Data Pipeline Management:** Coordinating the steps from scraping (`extraction.py`) to processing/indexing (`process.py`) and ensuring the RAG application (`app.py`) uses the correct, up-to-date index and data requires careful path management.
 
 ### Future Improvements
 
 *   **Advanced Retrieval:** Implement strategies like Parent Document Retriever or re-ranking for better context relevance.
 *   **Vector Database:** Migrate from FAISS to a dedicated vector DB (Qdrant, Milvus) for scalability and advanced filtering.
 *   **Model Experimentation:** Test different embedding models or newer/larger Gemini models (e.g., Gemini 1.5 Pro).
-*   **Data Quality:** Enhance `knowledgebase.json` with more structured fields (cuisine, specific dietary tags) and ensure data consistency.
+*   **Data Quality:** Enhance `knowledgebase.json` with more structured fields (cuisine, specific dietary tags) and ensure data consistency. Implement robust cleaning in `process.py` or a dedicated script.
 *   **Conversational Memory:** Add context from previous turns for follow-up questions.
 *   **Evaluation:** Implement a framework (e.g., RAGAs) to systematically evaluate retrieval and generation quality.
-*   **Error Handling:** Improve robustness and provide more informative user feedback on errors.
+*   **Error Handling:** Improve robustness and provide more informative user feedback on errors throughout the pipeline (scraping, processing, RAG).
+*   **Refine Scraper:** Make `web_scraper.py` more robust to different website structures; implement `fetch_websites.py` and `utils.py`.
+*   **Streamline Data Flow:** Clarify and potentially automate the data flow from raw extraction to indexed data used by the app.
 
 **(For a visual flow diagram, refer to the Mermaid diagram below or in separate technical documentation).**
 
