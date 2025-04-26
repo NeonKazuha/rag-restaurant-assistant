@@ -11,7 +11,7 @@ def create_faiss_index(chunks, model_name='all-MiniLM-L6-v2'):
     embed_model = SentenceTransformer(model_name)
     embeddings = embed_model.encode(texts, normalize_embeddings=True)
     dim = embeddings.shape[1]
-    index = faiss.IndexFlatIP(dim)  # use inner-product = cosine similarity
+    index = faiss.IndexFlatIP(dim)
     index.add(np.array(embeddings, dtype='float32'))
     return embed_model, index
 

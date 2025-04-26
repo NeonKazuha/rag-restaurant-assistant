@@ -16,14 +16,17 @@ except Exception as e:
 
 # --- Prompt Template ---
 PROMPT = """
-You are ZomatoBot. Use the following information to answer the question.
+You are ZomatoBot. Use ONLY the following context to answer the question.
+Do not add information not present in the context.
+If the question is subjective (e.g., asking for the 'best'), list relevant options from the context with their descriptions instead of making a judgment.
+
 Context:
 {context}
 
 Question:
 {question}
 
-Answer concisely:
+Answer based on the context:
 """.strip()
 
 # --- Helper Function ---
@@ -121,7 +124,6 @@ def answer_dynamic(question, embed_model, index, chunks, k=10):
 
         r1, r2 = restaurants
         # Find the specific dish chunk for each restaurant
-        # Use .get() for safer dictionary access
         d1 = next((c for c in chunks if c.get('dish_name') == dish and c.get('resto_id') == r1), None)
         d2 = next((c for c in chunks if c.get('dish_name') == dish and c.get('resto_id') == r2), None)
 
@@ -150,8 +152,8 @@ def answer_dynamic(question, embed_model, index, chunks, k=10):
 
     # List Dishes at Restaurant: List all known dishes for a specific restaurant
     if spec.get('restaurant'):
-        resto_id = spec['restaurant'] # Assuming spec['restaurant'] holds the ID
-        names = list_dishes(resto_id, chunks) # Uses the helper function defined above
+        resto_id = spec['restaurant']
+        names = list_dishes(resto_id, chunks)
         if not names:
             return f"Sorry, I couldn't find any dishes listed for the restaurant '{resto_id}'."
         return f"Dishes available at {resto_id}:\n" + "\n".join(names)
