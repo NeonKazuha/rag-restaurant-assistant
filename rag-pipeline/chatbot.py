@@ -156,7 +156,7 @@ def answer_dynamic(question, embed_model, index, chunks, k=10):
         names = list_dishes(resto_id, chunks)
         if not names:
             return f"Sorry, I couldn't find any dishes listed for the restaurant '{resto_id}'."
-        return f"Dishes available at {resto_id}:\n" + "\n".join(names)
+        return f"Dishes available at {resto_id}:{md_newline}" + f"{md_newline}".join(i for i in names)
 
     # --- Fallback: Full RAG ---
     # If no specific query type matched, use general RAG
