@@ -74,7 +74,7 @@ def answer_dynamic(question, embed_model, index, chunks, k=10):
 
 
     # --- Handling Specific Query Types ---
-
+    md_newline = "  \n"
     # 1) Price Filter: Find dishes below a certain price
     if spec.get('price_lt') is not None:
         thr = spec['price_lt']
@@ -92,7 +92,7 @@ def answer_dynamic(question, embed_model, index, chunks, k=10):
             selected = [chunks[i] for i in idxs]
         # Safely get dish names
         dish_names = [c.get('dish_name', 'Unknown Dish') for c in selected]
-        return f"Here are some dishes under ₹{thr}:\n" + "\n".join(dish_names)
+        return f"Here are some dishes under ₹{thr}:{md_newline}" + md_newline.join(dish_names)
 
     # 2) Dietary Filters: Find dishes matching dietary tags (e.g., vegan, gluten-free)
     if spec.get('dietary'):
@@ -110,7 +110,7 @@ def answer_dynamic(question, embed_model, index, chunks, k=10):
             selected = [chunks[i] for i in idxs]
         # Safely get dish names
         dish_names = [c.get('dish_name', 'Unknown Dish') for c in selected]
-        return f"Here are some dishes that are {', '.join(tags)}:\n" + "\n".join(dish_names)
+        return f"Here are some dishes under ₹{thr}:{md_newline}" + md_newline.join(dish_names)
 
     # 3) Spice Comparison: Compare spice levels of the same dish at two restaurants
     if spec.get('spice_cmp'):
