@@ -57,7 +57,7 @@ def parse_rating(rating_str):
     return None
 
 # --- Main Answering Function (Hybrid Approach) ---
-def answer_hybrid(question, embed_model, index, chunks, restaurants, k=10):
+def answer(question, embed_model, index, chunks, restaurants, k=500):
     """
     Answers questions by checking specific intents first, then uses RAG+Gemini as fallback.
     """

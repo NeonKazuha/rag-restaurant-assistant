@@ -3,3 +3,5 @@ sentence-transformers
 transformers
 faiss-cpu
 streamlit
+google-generativeai
+bs4

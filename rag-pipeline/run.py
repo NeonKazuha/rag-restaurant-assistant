@@ -2,7 +2,7 @@ import os
 from fetch_restaurant import load_restaurants
 from chunking import build_dish_chunks
 from index_faiss import create_faiss_index
-from chatbot import answer_dynamic
+from chatbot import answer
 
 def main():
     #Load from JSON
@@ -19,7 +19,7 @@ def main():
         q = input("\nYou: ")
         if q.lower() in ('exit', 'quit'):
             break
-        resp = answer_dynamic(q, embed_model, index, chunks)
+        resp = answer(q, embed_model, index, chunks)
         print("Bot:", resp)
 
 if __name__ == "__main__":

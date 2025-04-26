@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 from fetch_restaurant import load_restaurants
 from chunking import build_dish_chunks
 from index_faiss import create_faiss_index
-from chatbot import answer_hybrid
+from chatbot import answer
 
 load_dotenv()
 
@@ -56,8 +56,8 @@ def load_models_and_index(_chunks):
         return None, None
 
 # --- Streamlit App UI ---
-st.set_page_config(page_title="Restaurant Chatbot (Hybrid)", layout="centered")
-st.title("🍽️ Restaurant Chatbot (Hybrid)")
+st.set_page_config(page_title="Restaurant Chatbot", layout="centered")
+st.title("Restaurant Chatbot")
 st.caption("Ask me about dishes, prices, comparisons, and more!")
 
 restaurants_data, chunks = load_restaurants_and_chunk_data(DATA_PATH)
@@ -87,7 +87,7 @@ if restaurants_data and chunks:
                 full_response = ""
                 with st.spinner("Thinking..."):
                     # Pass restaurants_data for direct lookups (e.g., ratings)
-                    response = answer_hybrid(prompt, embed_model, index, chunks, restaurants_data)
+                    response = answer(prompt, embed_model, index, chunks, restaurants_data)
                     full_response = response
 
                 message_placeholder.markdown(full_response)
