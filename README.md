@@ -6,6 +6,9 @@ This project implements a Retrieval-Augmented Generation (RAG) chatbot designed 
 
 The chatbot can be interacted with via a Streamlit web interface (`app.py`) or a command-line interface (`run.py`).
 
+## Video Example
+https://drive.google.com/file/d/1GhxKpdK5cyH1M8kSQRru6a66u3PB7xZD/view?usp=sharing
+
 ## Features
 
 *   **Natural Language Queries:** Ask questions about dishes, prices, restaurants, ratings, dietary options, etc., in plain English.
