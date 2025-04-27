@@ -205,4 +205,3 @@ sequenceDiagram
     Generator-->>-Chatbot: Synthesized Answer
     Chatbot-->>-UI: Return generated answer
     UI-->>-User: Display answer
-'''
