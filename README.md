@@ -2,7 +2,7 @@
 
 ## Overview
 
-This project implements a Retrieval-Augmented Generation (RAG) chatbot designed to answer user questions about restaurants based on a provided knowledge base (`knowledgebase.json`). It leverages semantic search (Sentence Transformers + FAISS) to find relevant information about menu items and restaurant details, and uses the Google Gemini API (`gemini-1.5-flash-latest`) to synthesize natural language answers based solely on the retrieved context.
+This project implements a Retrieval-Augmented Generation (RAG) chatbot designed to answer user questions about restaurants based on a provided knowledge base (`knowledgebase.json`). It leverages semantic search (Sentence Transformers + FAISS) to find relevant information about menu items and restaurant details, and uses the Google Gemini API (`gemini-2.0-flash`) to synthesize natural language answers based solely on the retrieved context.
 
 The chatbot can be interacted with via a Streamlit web interface (`app.py`) or a command-line interface (`run.py`).
 
