@@ -68,11 +68,6 @@ Folder StructureRAG-RESTAURANT-ASSISTANT/
 │   └── run.py                # Command-line interface
 │
 ├── scraper/                  # (Optional) Code used for data collection & preprocessing
-│   ├── output/               # Output from scraper scripts
-│   │   ├── raw_extracted_data.json # Raw data from extraction.py
-│   │   ├── knowledge_base.json     # Processed data (alternative location)
-│   │   ├── faiss_index.bin         # FAISS index file
-│   │   └── metadata.pkl            # Metadata for FAISS index
 │   ├── extraction.py         # Extracts data using the scraper and saves raw output
 │   ├── fetch_websites.py     # (Placeholder) Script to fetch website URLs for scraping
 │   ├── process.py            # Processes data, creates embeddings and FAISS index
@@ -122,7 +117,7 @@ Folder StructureRAG-RESTAURANT-ASSISTANT/
 
 1.  **Clone the repository:**
     ```bash
-    git clone <your-repository-url>
+    git clone (https://github.com/NeonKazuha/rag-restaurant-assistant)
     cd RAG-RESTAURANT-ASSISTANT
     ```
 2.  **Create and activate a virtual environment:**
